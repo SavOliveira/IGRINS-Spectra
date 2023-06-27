@@ -137,7 +137,52 @@ yso_line_dict = {
   }
 
 # Strings of the lines
-lines_str = list(nir_dict.keys())
+lines_str = list(yso_line_dict.keys())
 
 # Wavelength values for each line
+lines_wav = list(yso_line_dict.values())
+
+# NIR Lines in micron
+nir_dict = {
+    "Fe-2.084": 2.084,
+    "Si-2.092"	:	2.092,
+    "Mg-2.106"	:	2.106,
+    "Al-2.11"	:	2.11,
+    "Ca-2.2035"	:	2.2035,
+    "Fe-2.2037"	:	2.2037,
+    "Sc-2.2052"	:	2.2052,
+    "Na-2.2052"	:	2.2052,
+    "Si-2.2063"	:	2.2063,
+    "Sc-2.2065"	:	2.2065,
+    "Si-2.2073"	:	2.2073,
+    "Fe-2.2079"	:	2.2079,
+    "Na-2.2083"	:	2.2083,
+    "Ca-2.2113"	:	2.2113,
+    "Br-Gamma"  :   2.1655,
+    "Ti-2.2218"	:	2.2218,
+    "Ti-2.224"	:	2.224,
+    "Fe-2.226"	:	2.226,
+    "Ti-2.228"	:	2.228,
+    "Ti-2.232"	:	2.232,
+    "Ca-2.26573"	:	2.26573,
+    "Fe-2.2742"	:	2.2742,
+    "Mg-2.281"	:	2.281,
+    "Ca-2.2825"	:	2.2825,
+    "Fe-2.284"	:	2.284,
+    "Ti-2.29"	:	2.29,
+    "Ti-2.297"	:	2.297,
+    "CO(2-0)-2.29353" :	2.29353,
+    "CO(2-0)-2.32265"	:	2.32265,
+    "CO(2-0)-2.34327" :	2.34327,
+    "CO(2-0)-2.34531" :	2.34531,
+    "CO(2-0)-2.3495" 	:	2.3495,
+    "CO(2-0)-2.35167"	:	2.35167,
+    "CO(2-0)-2.35246" :	2.35246,
+    "CO(2-0)-2.38295" :	2.38295,
+}
+
+# Strings of the Nir lines
+lines_str = list(nir_dict.keys())
+
+# Wavelength values for each NIR line
 lines_wav = list(nir_dict.values())
