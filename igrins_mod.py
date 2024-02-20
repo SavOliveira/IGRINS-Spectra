@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
+from astropy.io import fits
 from scipy.integrate import trapz
 from scipy.optimize import curve_fit
 
@@ -14,9 +15,11 @@ spec_res = 1e-5 # micron per pixel
 cont_window_size = 20*spec_res
 
 def Gaussian(x,amplitude, mean, std, b):
-    term1 = (amplitude/(std*np.sqrt(2*np.pi)))
-    term2 = np.exp((-0.5)*((x-mean)**2/std**2))
-    return (term1*term2) + b
+    # Normalized Gaussian Distribution
+    return ((-amplitude)/(std*np.sqrt(2*np.pi)) * np.exp(-0.5*((x - mean)/std)**2)) + b
+
+def mult_Gaussian(x, amp1, c1, std1, amp2, c2, std2, b):
+    return ((amp1)/(std1*np.sqrt(2*np.pi)) * np.exp(-0.5*((x - c1)/std1)**2)) + ((amp2)/(std2*np.sqrt(2*np.pi)) * np.exp(-0.5*((x - c2)/std2)**2)) + b
 
 def get_fitsdata(filepath):
     '''
@@ -32,7 +35,7 @@ def get_fitsdata(filepath):
     data = fits.getdata(filepath)
     wavelen = data[0]
     flux = data[1]
-    snr = data[3]
+    snr = data[2]
 
     # Clean data a bit
     snr_min = 50 # Minimum SNR
@@ -40,7 +43,7 @@ def get_fitsdata(filepath):
     snr_cut = (snr > snr_min) & (snr < snr_max) # bitwise SNR masking
 
     flux_min = 0 # minimum flux
-    flux_cut = flux > 0 # bitwise flux masking
+    flux_cut = flux > flux_min # bitwise flux masking
 
     wavelen = wavelen[snr_cut & flux_cut]
     flux = flux[snr_cut & flux_cut]
@@ -76,18 +79,17 @@ def local_continuum_fit(wavelen_arr,flux_arr,line_center):
 
     Input:
     ---
-    table
-
-    wave_center
+    wavelen_arr
+    flux_arr
+    line_center
     
-    left_window
-    
-    right_window
 
     Output:
     ---
 
     '''
+    cont_window_size = 15*spec_res
+
     # Find the index for central wavelength of spectral feature
     wave_left = line_center - (75*spec_res)
     wave_right = line_center + (75*spec_res)
@@ -109,6 +111,8 @@ def local_continuum_fit(wavelen_arr,flux_arr,line_center):
 
     conthi_min = np.abs(wavelen_arr - conthi_1).argmin()
     conthi_max = np.abs(wavelen_arr - conthi_2).argmin()
+
+    specline_window = wavelen_arr[contlo_max:conthi_max]
     #################################################
     # estimate continuum using mean of points in selected range
 
@@ -130,7 +134,10 @@ def local_continuum_fit(wavelen_arr,flux_arr,line_center):
     fitval = np.poly1d(cont_fit)
     continuum = fitval(wavelen_arr)
 
-    return continuum
+    return continuum, contlo_min, contlo_max, conthi_min, conthi_max
+
+def normalize_flux(flux):
+    return flux/np.median(flux)
 
 def mean_continuum(continuum):
     return np.mean(continuum)
@@ -151,15 +158,38 @@ def mean_continuum_norm(flux,mean_continuum):
     meancont_norm = flux/mean_continuum
     return meancont_norm
 
-# def gauss_fit(wavlen,):
+def gauss_fit(wavelen,norm_flux,line_center,contlo_min,conthi_max):
+    # initial parameters for the Gaussian
+    init_param = 1-(norm_flux[contlo_min:conthi_max]).max(), line_center, 1., 0 # Amplitude, Center, STD, y-offset
 
+    param_bounds = ([-1,line_center-(5*spec_res),0.,-1.],[1,line_center+(5*spec_res),1.,1.])
 
-#     popt, pcov = curve_fit(f=Gaussian,
-#                         xdata=wavlen.iloc[contlo_max:conthi_min]),
-#                         ydata=cont_norm.iloc[contlo_max:conthi_min],
-#                         p0=init_param,
-#                         maxfev=1000)
-#     return best_model
+    popt, pcov = curve_fit(f=Gaussian,
+                           xdata=wavelen[contlo_min:conthi_max],
+                           ydata=norm_flux[contlo_min:conthi_max],
+                           p0=init_param,
+                           bounds=param_bounds,
+                           maxfev=50000)
+    # Give the optimal parameters as caluclated by curve fit to the Gaussian model
+    best_model = Gaussian(wavelen,*popt)
+
+    return popt, pcov, best_model
+
+def multigauss_fit(wavelen,norm_flux,line_center,contlo_min,conthi_max):
+    # initial parameters for the Gaussian
+
+    init_param = 1-(norm_flux[contlo_min:conthi_max]).max(), line_center, 1., 1-(norm_flux[contlo_min:conthi_max]).max(), line_center, 1., 0 # Amplitude, Center, STD, y-offset
+
+    
+    popt, pcov = curve_fit(f=mult_Gaussian,
+                           xdata=wavelen[contlo_min:conthi_max],
+                           ydata=norm_flux[contlo_min:conthi_max],
+                           p0=init_param,
+                           maxfev=50000)
+    # Give the optimal parameters as caluclated by curve fit to the Gaussian model
+    best_model = mult_Gaussian(wavelen,*popt)
+
+    return popt, pcov, best_model
 
 # Look at the 2.0920 micron feature cell to do better!
 # Use Normalized Gaussian Distribution
