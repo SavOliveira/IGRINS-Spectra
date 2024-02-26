@@ -16,7 +16,7 @@ cont_window_size = 20*spec_res
 
 def Gaussian(x,amplitude, mean, std, b):
     # Normalized Gaussian Distribution
-    return ((-amplitude)/(std*np.sqrt(2*np.pi)) * np.exp(-0.5*((x - mean)/std)**2)) + b
+    return ((amplitude)/(std*np.sqrt(2*np.pi)) * np.exp(-0.5*((x - mean)/std)**2)) + b
 
 def mult_Gaussian(x, amp1, c1, std1, amp2, c2, std2, b):
     return ((amp1)/(std1*np.sqrt(2*np.pi)) * np.exp(-0.5*((x - c1)/std1)**2)) + ((amp2)/(std2*np.sqrt(2*np.pi)) * np.exp(-0.5*((x - c2)/std2)**2)) + b
@@ -162,13 +162,12 @@ def gauss_fit(wavelen,norm_flux,line_center,contlo_min,conthi_max):
     # initial parameters for the Gaussian
     init_param = 1-(norm_flux[contlo_min:conthi_max]).max(), line_center, 1., 0 # Amplitude, Center, STD, y-offset
 
-    param_bounds = ([-1,line_center-(5*spec_res),0.,-1.],[1,line_center+(5*spec_res),1.,1.])
+    # param_bounds = ([-1,line_center-(5*spec_res),0.,-1.],[1,line_center+(5*spec_res),1.,1.])
 
     popt, pcov = curve_fit(f=Gaussian,
                            xdata=wavelen[contlo_min:conthi_max],
                            ydata=norm_flux[contlo_min:conthi_max],
                            p0=init_param,
-                           bounds=param_bounds,
                            maxfev=50000)
     # Give the optimal parameters as caluclated by curve fit to the Gaussian model
     best_model = Gaussian(wavelen,*popt)
