@@ -25,18 +25,26 @@ def get_fitsdata(filepath):
     '''
     Get data from fits file + do some cleaning
     Input: 
-    filepath = string
+    filepath = string, might change to file list to do all the same time
 
     Output:
     wavelen = np array
     flux = np array
     snr = np array
     '''
-    data = fits.getdata(filepath)
-    wavelen = data[0]
-    flux = data[1]
-    snr = data[2]
+    first_data = fits.getdata(filepath)
 
+    n = len(filepath)
+
+    wavelen = first_data[0]
+    flux = first_data[1]
+    snr = first_data[2]
+
+    ##  Work in Progress?
+    # for i in range(0,n):
+    #    spec = fits.getdata(filepath[i])
+    #    spec_stack[:,i] = spec[:]
+    
     # Clean data a bit
     snr_min = 50 # Minimum SNR
     snr_max = 1e4 # Maxmimum SNR
@@ -45,9 +53,13 @@ def get_fitsdata(filepath):
     flux_min = 0 # minimum flux
     flux_cut = flux > flux_min # bitwise flux masking
 
-    wavelen = wavelen[snr_cut & flux_cut]
-    flux = flux[snr_cut & flux_cut]
-    snr = snr[snr_cut & flux_cut]
+    wavelen_min = 1.92
+    wavelen_max = 2.48
+    wavelen_cut = (wavelen > wavelen_min) & (wavelen < wavelen_max)
+
+    wavelen = wavelen[snr_cut & flux_cut & wavelen_cut]
+    flux = flux[snr_cut & flux_cut & wavelen_cut]
+    snr = snr[snr_cut & flux_cut & wavelen_cut]
 
     return wavelen, flux, snr
 
@@ -167,7 +179,6 @@ def gauss_fit(wavelen,norm_flux,line_center,contlo_min,conthi_max):
     popt, pcov = curve_fit(f=Gaussian,
                            xdata=wavelen[contlo_min:conthi_max],
                            ydata=norm_flux[contlo_min:conthi_max],
-                           p0=init_param,
                            maxfev=50000)
     # Give the optimal parameters as caluclated by curve fit to the Gaussian model
     best_model = Gaussian(wavelen,*popt)
