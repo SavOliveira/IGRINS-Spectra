@@ -53,7 +53,7 @@ def get_fitsdata(filepath):
     flux_min = 0 # minimum flux
     flux_cut = flux > flux_min # bitwise flux masking
 
-    wavelen_min = 2.0
+    wavelen_min = 1.9
     wavelen_max = 2.48
     wavelen_cut = (wavelen > wavelen_min) & (wavelen < wavelen_max)
 
