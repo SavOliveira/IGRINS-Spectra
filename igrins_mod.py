@@ -2,7 +2,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
+import astropy.units as u
 from astropy.io import fits
+from astropy.modeling import models
+from astroquery.nist import Nist # atomic lines
+from astroquery.linelists.cdms import CDMS # molecular lines?
+
+from specutils import Spectrum1D
+from specutils.fitting import fit_generic_continuum
+
 from scipy.integrate import trapz
 from scipy.optimize import curve_fit
 
@@ -20,6 +28,41 @@ def Gaussian(x,amplitude, mean, std, b):
 
 def mult_Gaussian(x, amp1, c1, std1, amp2, c2, std2, b):
     return ((amp1)/(std1*np.sqrt(2*np.pi)) * np.exp(-0.5*((x - c1)/std1)**2)) + ((amp2)/(std2*np.sqrt(2*np.pi)) * np.exp(-0.5*((x - c2)/std2)**2)) + b
+
+# # Make Stacks of data
+# # Determine the maximum length of flux arrays
+# max_flux_length = max(len(fits.getdata(file)[1]) for file in merged_standard_files)
+# max_wavelen_length = max(len(fits.getdata(file)[0]) for file in merged_standard_files)
+# max_snr_length = max(len(fits.getdata(file)[2]) for file in merged_standard_files)
+# # Initialize flux_stack with NaN values
+
+# wavelen_stack = np.full((max_wavelen_length, len(merged_standard_files)), np.nan)
+# flux_stack = np.full((max_flux_length, len(merged_standard_files)), np.nan)
+# snr_stack = np.full((max_snr_length, len(merged_standard_files)), np.nan)
+
+# # Fill flux_stack with flux data
+# for i, file in enumerate(merged_standard_files):
+#     # Get data
+#     wavelen = fits.getdata(file)[0]
+#     flux = fits.getdata(file)[1]
+#     snr = fits.getdata(file)[2]
+#     # Clean data a bit
+#     snr_min = 50 # Minimum SNR
+#     snr_max = 1e4 # Maxmimum SNR
+#     snr_cut = (snr > snr_min) & (snr < snr_max) # bitwise SNR masking
+
+#     flux_min = 0 # minimum flux
+#     flux_cut = flux > flux_min # bitwise flux masking
+
+#     wavelen_min = 1.98
+#     wavelen_max = 2.48
+#     wavelen_cut = (wavelen > wavelen_min) & (wavelen < wavelen_max)
+
+#     wavelen = wavelen[snr_cut & flux_cut & wavelen_cut]
+#     flux = flux[snr_cut & flux_cut & wavelen_cut]
+
+#     wavelen_stack[:len(wavelen),i] = wavelen
+#     flux_stack[:len(flux), i] = flux
 
 def get_fitsdata(filepath):
     '''
@@ -179,6 +222,7 @@ def gauss_fit(wavelen,norm_flux,line_center,contlo_min,conthi_max):
     popt, pcov = curve_fit(f=Gaussian,
                            xdata=wavelen[contlo_min:conthi_max],
                            ydata=norm_flux[contlo_min:conthi_max],
+                           p0=init_param,
                            maxfev=50000)
     # Give the optimal parameters as caluclated by curve fit to the Gaussian model
     best_model = Gaussian(wavelen,*popt)
