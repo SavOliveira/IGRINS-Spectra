@@ -1,0 +1,18 @@
+,Source,Name,Spectral_Type,v/c,Wavelength Shift
+0,A:\Documents\Grad_School\IGRINS-Spectra\IGRINS_Merged\merged_standards\mHD286178_20190120_K_0049_spec_A0v.fits,HD286178,K1,0.00010788764111876716,0.0002380262451171511
+1,A:\Documents\Grad_School\IGRINS-Spectra\IGRINS_Merged\merged_standards\mHQTau_20190119_K_0031_spec_A0v.fits,HQTau,K2,0.00010788764111876716,0.0002380262451171511
+2,A:\Documents\Grad_School\IGRINS-Spectra\IGRINS_Merged\merged_standards\mLkCa14_20181120_K_0087_spec_A0v.fits,LkCa14,K5/K7,4.4453210112278666e-05,9.80745391845339e-05
+3,A:\Documents\Grad_School\IGRINS-Spectra\IGRINS_Merged\merged_standards\mHBC427_20171229_K_0064_spec_A0v.fits,HBC427,K6,9.881014162209759e-05,0.00021799908447261984
+4,A:\Documents\Grad_School\IGRINS-Spectra\IGRINS_Merged\merged_standards\mV830Tau_20190122_K_0031_spec_A0v.fits,V830Tau,K7.5,0.0001577058228802513,0.0003479372100829714
+5,A:\Documents\Grad_School\IGRINS-Spectra\IGRINS_Merged\merged_standards\mHubble4_20181120_K_0083_spec_A0v.fits,Hubble4,K8,3.9914460363943883e-05,8.806095886226828e-05
+6,A:\Documents\Grad_School\IGRINS-Spectra\IGRINS_Merged\merged_standards\mXEST09-042_20171229_K_0056_spec_A0v.fits,XEST09-042,K8,0.00013955082388691218,0.0003078828887939089
+7,A:\Documents\Grad_School\IGRINS-Spectra\IGRINS_Merged\merged_standards\mHaro6-13_20190123_K_0083_spec_A0v.fits,Haro6-13,M0,0.0001260426401121063,0.0002780805664062136
+8,A:\Documents\Grad_School\IGRINS-Spectra\IGRINS_Merged\merged_standards\mAnon1_20181120_K_0075_spec_A0v.fits,Anon1,M0.5,4.4453210112278666e-05,9.80745391845339e-05
+9,A:\Documents\Grad_School\IGRINS-Spectra\IGRINS_Merged\merged_standards\mJH108_20171230_K_0041_spec_A0v.fits,JH108,M1.5,9.427139187376282e-05,0.00020798550415035422
+10,A:\Documents\Grad_School\IGRINS-Spectra\IGRINS_Merged\merged_standards\mLkCa4_20181120_K_0063_spec_A0v.fits,LkCa4,M2,3.9914460363943883e-05,8.806095886226828e-05
+11,A:\Documents\Grad_School\IGRINS-Spectra\IGRINS_Merged\merged_standards\mDKTau_20181119_K_0053_spec_A0v.fits,DKTau,M2/K9,3.9914460363943883e-05,8.806095886226828e-05
+12,A:\Documents\Grad_School\IGRINS-Spectra\IGRINS_Merged\merged_standards\mHBC359_20181120_K_0063_spec_A0v.fits,HBC359,M3,3.9914460363943883e-05,8.806095886226828e-05
+13,A:\Documents\Grad_School\IGRINS-Spectra\IGRINS_Merged\merged_standards\mJH433_20190125_K_0091_spec_A0v.fits,JH433,M4,0.00013058138986044105,0.0002880941467284792
+14,A:\Documents\Grad_School\IGRINS-Spectra\IGRINS_Merged\merged_standards\mMHO7_20171231_K_0055_spec_A0v.fits,MHO7,M5,0.00011696514061543672,0.00025805340576168234
+15,A:\Documents\Grad_School\IGRINS-Spectra\IGRINS_Merged\merged_standards\mMHO8_20190124_K_0085_spec_A0v.fits,MHO8,M6,0.00013955082388691218,0.0003078828887939089
+16,A:\Documents\Grad_School\IGRINS-Spectra\IGRINS_Merged\merged_standards\mV410-Xray5a_20181119_K_0077_spec_A0v.fits,V410-Xray5a,M6/M0,3.083696086727432e-05,6.803379821773703e-05
