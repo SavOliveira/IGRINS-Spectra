@@ -19,6 +19,48 @@ def gaussian(x,*p):
     # Gaussian Distribution
     return ((amplitude/(std*np.sqrt(2*np.pi))) * np.exp(-0.5*((x - mean)**2/std**2))) + 1 #+ (slope*x)+b
 
+# def multi_gauss(x ,*params):
+#     """Sum of multiple Gaussians."""
+#     n = len(params) // 3  # Number of Gaussians
+#     gaussians = [gaussian(x, params[i], params[i+1], params[i+2]) for i in range(0, len(params), 3)]
+#     return np.sum(gaussians, axis=0)
+
+def multi_gauss_fit(x, y, init_params, max_iter):
+    """
+    Fits multiple Gaussians to the data.
+
+    Args:
+    - x: Independent variable data.
+    - y: Dependent variable data.
+    - init_params: Initial parameters for the Gaussians. Format: [amp1, cen1, sigma1, amp2, cen2, sigma2, ...]
+    - max_iter: Maximum number of iterations for curve fitting.
+
+    Returns:
+    - popt: Optimal parameters for the fit.
+    - pcov: Covariance matrix of the fit.
+    - best_model: Best-fit model.
+    """
+    n_params = len(init_params)
+    
+    if n_params % 3 != 0:
+        raise ValueError("The number of initial parameters must be a multiple of 3.")
+
+    def multi_gauss(x, *params):
+        """Sum of multiple Gaussians."""
+        gaussians = [gaussian(x, params[i], params[i+1], params[i+2]) for i in range(0, len(params), 3)]
+        return np.sum(gaussians)
+
+    popt, pcov = curve_fit(f=multi_gauss,
+                           xdata=x,
+                           ydata=y,
+                           p0=init_params,
+                           maxfev=max_iter)
+    # Generate the best-fit model using the optimal parameters
+    best_model = multi_gauss(x, *popt)
+
+    return popt, pcov, best_model
+
+
 # /(std*np.sqrt(2*np.pi))
 
 def two_gaussian(x, *p):
@@ -80,7 +122,7 @@ def txt_to_table(file_list):
 
     return table,wavlen
 
-def local_continuum_fit(wavelen_arr, flux_arr, poly_order, line_center, spec_res, window_size,num):
+def local_continuum_fit(wavelen_arr, flux_arr, poly_order, line_center, spec_res, window_size,left_num,right_num):
     '''
     Local Continuum Fitting to spectral features
 
@@ -109,8 +151,8 @@ def local_continuum_fit(wavelen_arr, flux_arr, poly_order, line_center, spec_res
     cont_window_size = window_size * spec_res
 
     # Define spectral window
-    wave_reg1_left = line_center - (num * spec_res)
-    wave_reg2_right = line_center + (num * spec_res)
+    wave_reg1_left = line_center - (left_num * spec_res)
+    wave_reg2_right = line_center + (right_num * spec_res)
 
     # Spectral feature max and min wavelength indices
     wavemin_idx = np.nanargmin(np.abs(wavelen_arr - wave_reg1_left))
