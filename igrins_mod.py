@@ -71,6 +71,13 @@ def three_gaussian(x, *p):
     amp1, c1, std1, amp2, c2, std2, amp3, c3, std3 = p
     return (amp1/(std1*np.sqrt(2*np.pi))) * np.exp(-0.5*((x - c1)**2/std1**2)) + (amp2/(std2*np.sqrt(2*np.pi))) * np.exp(-0.5*((x - c2)**2/std2**2)) + (amp3/(std3*np.sqrt(2*np.pi))) * np.exp(-0.5*((x - c3)**2/std3**2)) + 1
 
+def four_gaussian(x, *p):
+    amp1, c1, std1, amp2, c2, std2, amp3, c3, std3, amp4, c4, std4 = p
+    return (amp1/(std1*np.sqrt(2*np.pi)) * np.exp(-0.5*((x - c1)**2/std1**2)) +
+        (amp2/(std2*np.sqrt(2*np.pi))) * np.exp(-0.5*((x - c2)**2/std2**2)) +
+        (amp3/(std3*np.sqrt(2*np.pi))) * np.exp(-0.5*((x - c3)**2/std3**2)) +
+       (amp4/(std4*np.sqrt(2*np.pi))) * np.exp(-0.5*((x - c4)**2/std4**2)) + 1)
+
 
 def get_fitsdata(filepath):
     '''
@@ -263,6 +270,29 @@ def three_gauss_fit(wavelen,norm_flux,init_params,max_iter):
                            maxfev=max_iter)
     # Give the optimal parameters as caluclated by curve fit to the Gaussian model
     best_model = three_gaussian(wavelen,*popt)
+
+    return popt, pcov, best_model
+
+def four_gauss_fit(wavelen,norm_flux,init_params,max_iter):
+    '''
+    wavelen
+    norm_flux
+    line_center
+    wavelen_min
+    wavelen_max
+    init_params
+    '''
+    # wavelen_mask = (wavelen > wavelen_min) & (wavelen < wavelen_max)
+    # wavelen = wavelen[wavelen_mask]
+    # norm_flux = norm_flux[wavelen_mask]
+
+    popt, pcov = curve_fit(f=four_gaussian,
+                           xdata=wavelen,
+                           ydata=norm_flux,
+                           p0=init_params,
+                           maxfev=max_iter)
+    # Give the optimal parameters as caluclated by curve fit to the Gaussian model
+    best_model = four_gaussian(wavelen,*popt)
 
     return popt, pcov, best_model
 
