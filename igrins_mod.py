@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+# import mplcursors
 import pandas as pd
 
 from astropy.io import fits
@@ -129,6 +130,7 @@ def txt_to_table(file_list):
 
     return table,wavlen
 
+
 def local_continuum_fit(wavelen_arr, flux_arr, poly_order, line_center, spec_res, window_size,left_num,right_num):
     '''
     Local Continuum Fitting to spectral features
@@ -145,14 +147,17 @@ def local_continuum_fit(wavelen_arr, flux_arr, poly_order, line_center, spec_res
         Spectral resolution of the instrument
     window_size:
         size of window to estimate continuum
-    num:
-        determines how many pixels away from line center you want
+    left_num:
+        determines how many pixels away left of line center
+    right_num:
+        determines how many pixels away right of line center
+
     Output:
     ---
     continuum: 1D numpy array
         Continuum fit to the spectral feature
     contlo_min, contlo_max, conthi_min, conthi_max: int
-        Indices defining the continuum regions
+        Indices defining the regions where continuum is determined
     '''
 
     cont_window_size = window_size * spec_res
