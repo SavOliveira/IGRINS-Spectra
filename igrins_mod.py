@@ -63,21 +63,21 @@ def multi_gauss_fit(x, y, init_params, max_iter):
 
 
 # /(std*np.sqrt(2*np.pi))
-
+# could use same sigma for multi gauss fits
 def two_gaussian(x, *p):
-    amp1, c1, std1, amp2, c2, std2 = p
-    return ((amp1/(std1*np.sqrt(2*np.pi))) * np.exp(-0.5*((x - c1)**2/std1**2))) + ((amp2/(std2*np.sqrt(2*np.pi))) * np.exp(-0.5*((x - c2)**2/std2**2))) + 1
+    amp1, c1, std, amp2, c2, = p
+    return ((amp1/(std*np.sqrt(2*np.pi))) * np.exp(-0.5*((x - c1)**2/std**2))) + ((amp2/(std*np.sqrt(2*np.pi))) * np.exp(-0.5*((x - c2)**2/std**2))) + 1
 
 def three_gaussian(x, *p):
-    amp1, c1, std1, amp2, c2, std2, amp3, c3, std3 = p
-    return (amp1/(std1*np.sqrt(2*np.pi))) * np.exp(-0.5*((x - c1)**2/std1**2)) + (amp2/(std2*np.sqrt(2*np.pi))) * np.exp(-0.5*((x - c2)**2/std2**2)) + (amp3/(std3*np.sqrt(2*np.pi))) * np.exp(-0.5*((x - c3)**2/std3**2)) + 1
+    amp1, c1, std, amp2, c2, amp3, c3 = p
+    return (amp1/(std*np.sqrt(2*np.pi))) * np.exp(-0.5*((x - c1)**2/std**2)) + (amp2/(std*np.sqrt(2*np.pi))) * np.exp(-0.5*((x - c2)**2/std**2)) + (amp3/(std*np.sqrt(2*np.pi))) * np.exp(-0.5*((x - c3)**2/std**2)) + 1
 
 def four_gaussian(x, *p):
-    amp1, c1, std1, amp2, c2, std2, amp3, c3, std3, amp4, c4, std4 = p
-    return (amp1/(std1*np.sqrt(2*np.pi)) * np.exp(-0.5*((x - c1)**2/std1**2)) +
-        (amp2/(std2*np.sqrt(2*np.pi))) * np.exp(-0.5*((x - c2)**2/std2**2)) +
-        (amp3/(std3*np.sqrt(2*np.pi))) * np.exp(-0.5*((x - c3)**2/std3**2)) +
-       (amp4/(std4*np.sqrt(2*np.pi))) * np.exp(-0.5*((x - c4)**2/std4**2)) + 1)
+    amp1, c1, std, amp2, c2, amp3, c3, amp4, c4 = p
+    return (amp1/(std*np.sqrt(2*np.pi)) * np.exp(-0.5*((x - c1)**2/std**2)) +
+        (amp2/(std*np.sqrt(2*np.pi))) * np.exp(-0.5*((x - c2)**2/std**2)) +
+        (amp3/(std*np.sqrt(2*np.pi))) * np.exp(-0.5*((x - c3)**2/std**2)) +
+       (amp4/(std*np.sqrt(2*np.pi))) * np.exp(-0.5*((x - c4)**2/std**2)) + 1)
 
 
 def get_fitsdata(filepath):
@@ -165,6 +165,12 @@ def local_continuum_fit(wavelen_arr, flux_arr, poly_order, line_center, spec_res
     # Define spectral window
     wave_reg1_left = line_center - (left_num * spec_res)
     wave_reg2_right = line_center + (right_num * spec_res)
+
+    # wave_regions = []
+
+    # for i in range(len(nums)):
+    #     region = ((line_center-(nums[i]*spec_res)),(line_center-(nums[i]*spec_res)))
+    #     wave_regions = region
 
     # Spectral feature max and min wavelength indices
     wavemin_idx = np.nanargmin(np.abs(wavelen_arr - wave_reg1_left))
