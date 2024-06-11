@@ -131,7 +131,7 @@ def txt_to_table(file_list):
     return table,wavlen
 
 
-def local_continuum_fit(wavelen_arr, flux_arr, poly_order, line_center, spec_res, window_size,left_num,right_num):
+def local_continuum_fit(wavelen_arr, flux_arr, poly_order, line_center, spec_res, window_size, regions):
     '''
     Local Continuum Fitting to spectral features
 
@@ -141,75 +141,136 @@ def local_continuum_fit(wavelen_arr, flux_arr, poly_order, line_center, spec_res
         Array of wavelengths
     flux_arr: 1D numpy array
         Array of raw flux
+    poly_order: int
+        Order of the polynomial for fitting
     line_center: float
         Center wavelength of the spectral feature
     spec_res: float
         Spectral resolution of the instrument
-    window_size:
-        size of window to estimate continuum
-    left_num:
-        determines how many pixels away left of line center
-    right_num:
-        determines how many pixels away right of line center
+    window_size: float
+        Size of window to estimate continuum
+    regions: list of tuples
+        List of (center, width) tuples to define continuum regions. Each width is in units of spectral resolution.
 
     Output:
     ---
     continuum: 1D numpy array
         Continuum fit to the spectral feature
-    contlo_min, contlo_max, conthi_min, conthi_max: int
-        Indices defining the regions where continuum is determined
+    region_indices: list of tuples
+        List of indices defining the regions where continuum is determined
     '''
 
-    cont_window_size = window_size * spec_res
+    contwave_array = []
+    contflux_array = []
+    region_indices = []
 
-    # Define spectral window
-    wave_reg1_left = line_center - (left_num * spec_res)
-    wave_reg2_right = line_center + (right_num * spec_res)
+    for leftreg, width in regions:
+        region_start = line_center + (leftreg * spec_res)
+        region_width = width * spec_res
 
-    # wave_regions = []
+        # Define continuum region boundaries
+        cont_reg_lo = region_start
+        cont_reg_hi = region_start + region_width
 
-    # for i in range(len(nums)):
-    #     region = ((line_center-(nums[i]*spec_res)),(line_center-(nums[i]*spec_res)))
-    #     wave_regions = region
+        # Find the indices for the continuum region
+        cont_reg_lo_idx = np.nanargmin(np.abs(wavelen_arr - cont_reg_lo))
+        cont_reg_hi_idx = np.nanargmin(np.abs(wavelen_arr - cont_reg_hi))
 
-    # Spectral feature max and min wavelength indices
-    wavemin_idx = np.nanargmin(np.abs(wavelen_arr - wave_reg1_left))
-    wavemax_idx = np.nanargmin(np.abs(wavelen_arr - wave_reg2_right))
+        # Append wavelength and flux regions to arrays
+        contwave_array.extend(wavelen_arr[cont_reg_lo_idx:cont_reg_hi_idx])
+        contflux_array.extend(flux_arr[cont_reg_lo_idx:cont_reg_hi_idx])
 
-    # Choose spectral regions on either side of spectral feature to define a continuum
-    cont_reg1_lo = wavelen_arr[wavemin_idx] - cont_window_size # left
-    cont_reg1_hi = wavelen_arr[wavemin_idx] # right
-
-    cont_reg2_lo = wavelen_arr[wavemax_idx] # left
-    cont_reg2_hi = wavelen_arr[wavemax_idx] + cont_window_size # right
-
-    # Find the indices for the continuum regions on either side of the spectral feature
-    cont_reg1_lo_idx = np.nanargmin(np.abs(wavelen_arr[:]-cont_reg1_lo))
-    cont_reg1_hi_idx = np.nanargmin(np.abs(wavelen_arr[:]-cont_reg1_hi))
-
-    cont_reg2_lo_idx = np.nanargmin(np.abs(wavelen_arr[:]-cont_reg2_lo))
-    cont_reg2_hi_idx = np.nanargmin(np.abs(wavelen_arr[:]-cont_reg2_hi))
-
-    # Estimate continuum using mean of points in selected range
-
-    # Wavelength range of where I'm estimating continuum
-    cont_reg1_wave = wavelen_arr[cont_reg1_lo_idx:cont_reg1_hi_idx] # 1st continuum region
-    cont_reg2_wave = wavelen_arr[cont_reg2_lo_idx:cont_reg2_hi_idx] # 2nd continuum region
-
-    # Flux range of where I'm estimating continuum
-    cont_reg1_flux = flux_arr[cont_reg1_lo_idx:cont_reg1_hi_idx]
-    cont_reg2_flux = flux_arr[cont_reg2_lo_idx:cont_reg2_hi_idx]
-
-    contwave_array = np.concatenate((cont_reg1_wave, cont_reg2_wave))
-    contflux_array = np.concatenate((cont_reg1_flux, cont_reg2_flux))
+        region_indices.append((cont_reg_lo_idx, cont_reg_hi_idx))
 
     # Estimate continuum using 1D polyfit to points in selected range
-    continuum_fit = np.polyfit(contwave_array, contflux_array, poly_order)
+    continuum_fit = np.polyfit(x=contwave_array, y=contflux_array, deg=poly_order)
     fitval = np.poly1d(continuum_fit)
-    continuum = fitval(wavelen_arr)
-    continuum = continuum[cont_reg1_lo_idx:cont_reg2_hi_idx]
+    continuum = fitval(wavelen_arr[region_indices[0][0]:region_indices[-1][1]])
 
-    return continuum, cont_reg1_lo_idx, cont_reg1_hi_idx, cont_reg2_lo_idx, cont_reg2_hi_idx
+    # Return the full continuum fit and the indices of the regions used
+    return continuum, region_indices
+
+# def local_continuum_fit(wavelen_arr, flux_arr, poly_order, line_center, spec_res, window_size,left_num,right_num):
+#     '''
+#     Local Continuum Fitting to spectral features
+
+#     Input:
+#     ---
+#     wavelen_arr: 1D numpy array
+#         Array of wavelengths
+#     flux_arr: 1D numpy array
+#         Array of raw flux
+#     poly_order: integer
+#         degree of polynomial for continuum fitting
+#     line_center: float
+#         Center wavelength of the spectral feature
+#     spec_res: float
+#         Spectral resolution of the instrument
+#     window_size:
+#         size of window to estimate continuum
+#     left_num:
+#         determines how many pixels away left of line center
+#     right_num:
+#         determines how many pixels away right of line center
+
+#     Output:
+#     ---
+#     continuum: 1D numpy array
+#         Continuum fit to the spectral feature
+#     contlo_min, contlo_max, conthi_min, conthi_max: int
+#         Indices defining the regions where continuum is determined
+#     '''
+
+#     cont_window_size = window_size * spec_res
+
+#     # Define spectral window
+#     wave_reg1_left = line_center - (left_num * spec_res)
+#     wave_reg2_right = line_center + (right_num * spec_res)
+
+#     # wave_regions = []
+
+#     # for i in range(len(nums)):
+#     #     region = ((line_center-(nums[i]*spec_res)),(line_center-(nums[i]*spec_res)))
+#     #     wave_regions = region
+
+#     # Spectral feature max and min wavelength indices
+#     wavemin_idx = np.nanargmin(np.abs(wavelen_arr - wave_reg1_left))
+#     wavemax_idx = np.nanargmin(np.abs(wavelen_arr - wave_reg2_right))
+
+#     # Choose spectral regions on either side of spectral feature to define a continuum
+#     cont_reg1_lo = wavelen_arr[wavemin_idx] - cont_window_size # left
+#     cont_reg1_hi = wavelen_arr[wavemin_idx] # right
+
+#     cont_reg2_lo = wavelen_arr[wavemax_idx] # left
+#     cont_reg2_hi = wavelen_arr[wavemax_idx] + cont_window_size # right
+
+#     # Find the indices for the continuum regions on either side of the spectral feature
+#     cont_reg1_lo_idx = np.nanargmin(np.abs(wavelen_arr[:]-cont_reg1_lo))
+#     cont_reg1_hi_idx = np.nanargmin(np.abs(wavelen_arr[:]-cont_reg1_hi))
+
+#     cont_reg2_lo_idx = np.nanargmin(np.abs(wavelen_arr[:]-cont_reg2_lo))
+#     cont_reg2_hi_idx = np.nanargmin(np.abs(wavelen_arr[:]-cont_reg2_hi))
+
+#     # Estimate continuum using mean of points in selected range
+
+#     # Wavelength range of where I'm estimating continuum
+#     cont_reg1_wave = wavelen_arr[cont_reg1_lo_idx:cont_reg1_hi_idx] # 1st continuum region
+#     cont_reg2_wave = wavelen_arr[cont_reg2_lo_idx:cont_reg2_hi_idx] # 2nd continuum region
+
+#     # Flux range of where I'm estimating continuum
+#     cont_reg1_flux = flux_arr[cont_reg1_lo_idx:cont_reg1_hi_idx]
+#     cont_reg2_flux = flux_arr[cont_reg2_lo_idx:cont_reg2_hi_idx]
+
+#     contwave_array = np.concatenate((cont_reg1_wave, cont_reg2_wave))
+#     contflux_array = np.concatenate((cont_reg1_flux, cont_reg2_flux))
+
+#     # Estimate continuum using 1D polyfit to points in selected range
+#     continuum_fit = np.polyfit(contwave_array, contflux_array, poly_order)
+#     fitval = np.poly1d(continuum_fit)
+#     continuum = fitval(wavelen_arr)
+#     continuum = continuum[cont_reg1_lo_idx:cont_reg2_hi_idx]
+
+#     return continuum, cont_reg1_lo_idx, cont_reg1_hi_idx, cont_reg2_lo_idx, cont_reg2_hi_idx
 
 def gauss_fit(wavelen,norm_flux,init_params,max_iter):
     '''

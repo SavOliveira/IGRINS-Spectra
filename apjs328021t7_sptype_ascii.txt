@@ -1,9 +1,4 @@
-Table 7 
-Spectral Slopes for Members of Taurus
-
-
-2MASS^a	Name	Spectral	alpha(2-8 mum)	alpha(2-24 mum)	alpha(3.6-8 mum)	alpha(3.6-24 mum)	SED	
-		Type					Class	
+2MASS	Name	Spectral_Type	alpha(2-8 mum)	alpha(2-24 mum)	alpha(3.6-8 mum)	alpha(3.6-24 mum)	SED_Class	
 J04034930+2610520	HBC 358 A+B+C	M3.5	-2.49/-2.49	-2.68/-2.68	-2.74/-2.74	-2.83/-2.83	III	
 J04034997+2620382	XEST 06-006	M5.25	 ... 	 ... 	 ... 	 ... 	III?	
 J04035084+2610531	HBC 359	M2	-2.58/-2.58	-2.77/-2.77	-2.74/-2.74	-2.88/-2.88	III	
@@ -356,7 +351,3 @@ J05064662+2104296	 ... 	M5.25	-2.40/-2.42	 ... 	-2.67/-2.68	 ... 	III
 J05071206+2437163	RXJ 05072+2437	K6	-2.68/-2.71	 ... 	-2.76/-2.77	 ... 	III	
 J05074953+3024050	RW Aur A+B	K3	-0.85/-0.96	 ... 	-0.56/-0.61	 ... 	II	
 J05075496+2500156	CIDA 12	M4	-1.59/-1.62	 ... 	-1.31/-1.32	 ... 	II	
-Notes. Entries consist of observed and dereddened values, respectively. Only the observed values are listed if extinction estimates are unavailable.
-a 2MASS Point Source Catalog
-b Because this multiple system is unresolved at 24 mum, this slope was computed with the total flux of the system in the band at the shorter wavelength.
-c The spectral type bin in which this source was placed in Table 8 based on its bolometric luminosity.
