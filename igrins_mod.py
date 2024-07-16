@@ -20,6 +20,11 @@ def gaussian(x,*p):
     # Gaussian Distribution
     return ((amplitude/(std*np.sqrt(2*np.pi))) * np.exp(-0.5*((x - mean)**2/std**2))) + 1 #+ (slope*x)+b
 
+
+def gaussian_area(amp, std):
+    return np.abs(amp*std)*np.sqrt(2*np.pi)
+
+# /(std*np.sqrt(2*np.pi))
 # def multi_gauss(x ,*params):
 #     """Sum of multiple Gaussians."""
 #     n = len(params) // 3  # Number of Gaussians
@@ -55,7 +60,8 @@ def multi_gauss_fit(x, y, init_params, max_iter):
                            xdata=x,
                            ydata=y,
                            p0=init_params,
-                           maxfev=max_iter)
+                           maxfev=max_iter,
+                           nan_policy='omit')
     # Generate the best-fit model using the optimal parameters
     best_model = multi_gauss(x, *popt)
 
@@ -65,20 +71,158 @@ def multi_gauss_fit(x, y, init_params, max_iter):
 # /(std*np.sqrt(2*np.pi))
 # could use same sigma for multi gauss fits
 def two_gaussian(x, *p):
-    amp1, c1, std, amp2, c2, = p
-    return ((amp1/(std*np.sqrt(2*np.pi))) * np.exp(-0.5*((x - c1)**2/std**2))) + ((amp2/(std*np.sqrt(2*np.pi))) * np.exp(-0.5*((x - c2)**2/std**2))) + 1
+    amp1, c1, std1, amp2, c2, std2 = p
+    return (gaussian(x, amp1,c1,std1) + gaussian(x, amp2,c2,std2) - 1)
 
 def three_gaussian(x, *p):
-    amp1, c1, std, amp2, c2, amp3, c3 = p
-    return (amp1/(std*np.sqrt(2*np.pi))) * np.exp(-0.5*((x - c1)**2/std**2)) + (amp2/(std*np.sqrt(2*np.pi))) * np.exp(-0.5*((x - c2)**2/std**2)) + (amp3/(std*np.sqrt(2*np.pi))) * np.exp(-0.5*((x - c3)**2/std**2)) + 1
+    amp1, c1, std1, amp2, c2, std2, amp3, c3, std3 = p
+    return (gaussian(x, amp1,c1,std1) + gaussian(x,amp2,c2,std2) + gaussian(x, amp3, c3, std3) - 2)
 
 def four_gaussian(x, *p):
-    amp1, c1, std, amp2, c2, amp3, c3, amp4, c4 = p
-    return (amp1/(std*np.sqrt(2*np.pi)) * np.exp(-0.5*((x - c1)**2/std**2)) +
-        (amp2/(std*np.sqrt(2*np.pi))) * np.exp(-0.5*((x - c2)**2/std**2)) +
-        (amp3/(std*np.sqrt(2*np.pi))) * np.exp(-0.5*((x - c3)**2/std**2)) +
-       (amp4/(std*np.sqrt(2*np.pi))) * np.exp(-0.5*((x - c4)**2/std**2)) + 1)
+    amp1, c1, std1, amp2, c2, std2, amp3, c3, std3, amp4, c4, std4 = p
+    return (gaussian(x, amp1, c1, std1) +
+            gaussian(x, amp2, c2, std2) +
+            gaussian(x, amp3, c3, std3) +
+            gaussian(x, amp4, c4, std4) - 3)
 
+
+def five_gaussian(x, *p):
+    amp1, c1, std1, amp2, c2, std2, amp3, c3, std3, amp4, c4, std4, amp5, c5, std5 = p
+    return (gaussian(x, amp1, c1, std1) +
+            gaussian(x, amp2, c2, std2) +
+            gaussian(x, amp3, c3, std3) +
+            gaussian(x, amp4, c4, std4) +
+            gaussian(x, amp5, c5, std5) - 4)
+
+def gauss_fit(wavelen,norm_flux,flux_err,init_params,max_iter):
+    '''
+    Fit a single Gaussian to some spectrum
+    wavelen
+    norm_flux
+    line_center
+    wavelen_min
+    wavelen_max
+    init_params
+    '''
+
+    # wavelen_mask = (wavelen > wavelen_min) & (wavelen < wavelen_max)
+    # wavelen = wavelen[wavelen_mask]
+    # norm_flux = norm_flux[wavelen_mask]
+
+    popt, pcov = curve_fit(f=gaussian,
+                           xdata=wavelen,
+                           ydata=norm_flux,
+                           sigma=flux_err,
+                           p0=init_params,
+                           maxfev=max_iter,
+                           nan_policy='omit')
+    
+    # Give the optimal parameters as caluclated by curve fit to the Gaussian model
+    best_model = gaussian(wavelen,*popt)
+
+    return popt, pcov, best_model
+
+def two_gauss_fit(wavelen,norm_flux,flux_err,init_params,max_iter):
+    '''
+    wavelen
+    norm_flux
+    line_center
+    wavelen_min
+    wavelen_max
+    init_params
+    '''
+    # wavelen_mask = (wavelen > wavelen_min) & (wavelen < wavelen_max)
+    # wavelen = wavelen[wavelen_mask]
+    # norm_flux = norm_flux[wavelen_mask]
+
+    popt, pcov = curve_fit(f=two_gaussian,
+                           xdata=wavelen,
+                           ydata=norm_flux,
+                           sigma=flux_err,
+                           p0=init_params,
+                           maxfev=max_iter,
+                           nan_policy='omit')
+    
+    # Give the optimal parameters as caluclated by curve fit to the Gaussian model
+    best_model = two_gaussian(wavelen,*popt)
+
+    return popt, pcov, best_model
+
+def three_gauss_fit(wavelen,norm_flux,flux_err,init_params,max_iter):
+    '''
+    wavelen
+    norm_flux
+    line_center
+    wavelen_min
+    wavelen_max
+    init_params
+    '''
+    # wavelen_mask = (wavelen > wavelen_min) & (wavelen < wavelen_max)
+    # wavelen = wavelen[wavelen_mask]
+    # norm_flux = norm_flux[wavelen_mask]
+
+    popt, pcov = curve_fit(f=three_gaussian,
+                           xdata=wavelen,
+                           ydata=norm_flux,
+                           sigma=flux_err,
+                           p0=init_params,
+                           maxfev=max_iter,
+                           nan_policy='omit')
+    
+    # Give the optimal parameters as caluclated by curve fit to the Gaussian model
+    best_model = three_gaussian(wavelen,*popt)
+
+    return popt, pcov, best_model
+
+def four_gauss_fit(wavelen,norm_flux,flux_err,init_params,max_iter):
+    '''
+    wavelen
+    norm_flux
+    line_center
+    wavelen_min
+    wavelen_max
+    init_params
+    '''
+    # wavelen_mask = (wavelen > wavelen_min) & (wavelen < wavelen_max)
+    # wavelen = wavelen[wavelen_mask]
+    # norm_flux = norm_flux[wavelen_mask]
+
+    popt, pcov = curve_fit(f=four_gaussian,
+                           xdata=wavelen,
+                           ydata=norm_flux,
+                           sigma=flux_err,
+                           p0=init_params,
+                           maxfev=max_iter,
+                           nan_policy='omit')
+    # Give the optimal parameters as caluclated by curve fit to the Gaussian model
+    best_model = four_gaussian(wavelen,*popt)
+
+    return popt, pcov, best_model
+
+def five_gauss_fit(wavelen,norm_flux,flux_err,init_params,max_iter):
+    '''
+    wavelen
+    norm_flux
+    line_center
+    wavelen_min
+    wavelen_max
+    init_params
+    '''
+    # wavelen_mask = (wavelen > wavelen_min) & (wavelen < wavelen_max)
+    # wavelen = wavelen[wavelen_mask]
+    # norm_flux = norm_flux[wavelen_mask]
+
+    popt, pcov = curve_fit(f=five_gaussian,
+                           xdata=wavelen,
+                           ydata=norm_flux,
+                           sigma=flux_err,
+                           p0=init_params,
+                           maxfev=max_iter,
+                           nan_policy='omit')
+    # Give the optimal parameters as caluclated by curve fit to the Gaussian model
+    best_model = five_gaussian(wavelen,*popt)
+
+    return popt, pcov, best_model
 
 def get_fitsdata(filepath):
     '''
@@ -131,7 +275,7 @@ def txt_to_table(file_list):
     return table,wavlen
 
 
-def local_continuum_fit(wavelen_arr, flux_arr, poly_order, line_center, spec_res, window_size, regions):
+def local_continuum_fit(wavelen_arr, flux_arr, poly_order, line_center, spec_res, regions):
     '''
     Local Continuum Fitting to spectral features
 
@@ -147,8 +291,6 @@ def local_continuum_fit(wavelen_arr, flux_arr, poly_order, line_center, spec_res
         Center wavelength of the spectral feature
     spec_res: float
         Spectral resolution of the instrument
-    window_size: float
-        Size of window to estimate continuum
     regions: list of tuples
         List of (center, width) tuples to define continuum regions. Each width is in units of spectral resolution.
 
@@ -189,184 +331,6 @@ def local_continuum_fit(wavelen_arr, flux_arr, poly_order, line_center, spec_res
 
     # Return the full continuum fit and the indices of the regions used
     return continuum, region_indices
-
-# def local_continuum_fit(wavelen_arr, flux_arr, poly_order, line_center, spec_res, window_size,left_num,right_num):
-#     '''
-#     Local Continuum Fitting to spectral features
-
-#     Input:
-#     ---
-#     wavelen_arr: 1D numpy array
-#         Array of wavelengths
-#     flux_arr: 1D numpy array
-#         Array of raw flux
-#     poly_order: integer
-#         degree of polynomial for continuum fitting
-#     line_center: float
-#         Center wavelength of the spectral feature
-#     spec_res: float
-#         Spectral resolution of the instrument
-#     window_size:
-#         size of window to estimate continuum
-#     left_num:
-#         determines how many pixels away left of line center
-#     right_num:
-#         determines how many pixels away right of line center
-
-#     Output:
-#     ---
-#     continuum: 1D numpy array
-#         Continuum fit to the spectral feature
-#     contlo_min, contlo_max, conthi_min, conthi_max: int
-#         Indices defining the regions where continuum is determined
-#     '''
-
-#     cont_window_size = window_size * spec_res
-
-#     # Define spectral window
-#     wave_reg1_left = line_center - (left_num * spec_res)
-#     wave_reg2_right = line_center + (right_num * spec_res)
-
-#     # wave_regions = []
-
-#     # for i in range(len(nums)):
-#     #     region = ((line_center-(nums[i]*spec_res)),(line_center-(nums[i]*spec_res)))
-#     #     wave_regions = region
-
-#     # Spectral feature max and min wavelength indices
-#     wavemin_idx = np.nanargmin(np.abs(wavelen_arr - wave_reg1_left))
-#     wavemax_idx = np.nanargmin(np.abs(wavelen_arr - wave_reg2_right))
-
-#     # Choose spectral regions on either side of spectral feature to define a continuum
-#     cont_reg1_lo = wavelen_arr[wavemin_idx] - cont_window_size # left
-#     cont_reg1_hi = wavelen_arr[wavemin_idx] # right
-
-#     cont_reg2_lo = wavelen_arr[wavemax_idx] # left
-#     cont_reg2_hi = wavelen_arr[wavemax_idx] + cont_window_size # right
-
-#     # Find the indices for the continuum regions on either side of the spectral feature
-#     cont_reg1_lo_idx = np.nanargmin(np.abs(wavelen_arr[:]-cont_reg1_lo))
-#     cont_reg1_hi_idx = np.nanargmin(np.abs(wavelen_arr[:]-cont_reg1_hi))
-
-#     cont_reg2_lo_idx = np.nanargmin(np.abs(wavelen_arr[:]-cont_reg2_lo))
-#     cont_reg2_hi_idx = np.nanargmin(np.abs(wavelen_arr[:]-cont_reg2_hi))
-
-#     # Estimate continuum using mean of points in selected range
-
-#     # Wavelength range of where I'm estimating continuum
-#     cont_reg1_wave = wavelen_arr[cont_reg1_lo_idx:cont_reg1_hi_idx] # 1st continuum region
-#     cont_reg2_wave = wavelen_arr[cont_reg2_lo_idx:cont_reg2_hi_idx] # 2nd continuum region
-
-#     # Flux range of where I'm estimating continuum
-#     cont_reg1_flux = flux_arr[cont_reg1_lo_idx:cont_reg1_hi_idx]
-#     cont_reg2_flux = flux_arr[cont_reg2_lo_idx:cont_reg2_hi_idx]
-
-#     contwave_array = np.concatenate((cont_reg1_wave, cont_reg2_wave))
-#     contflux_array = np.concatenate((cont_reg1_flux, cont_reg2_flux))
-
-#     # Estimate continuum using 1D polyfit to points in selected range
-#     continuum_fit = np.polyfit(contwave_array, contflux_array, poly_order)
-#     fitval = np.poly1d(continuum_fit)
-#     continuum = fitval(wavelen_arr)
-#     continuum = continuum[cont_reg1_lo_idx:cont_reg2_hi_idx]
-
-#     return continuum, cont_reg1_lo_idx, cont_reg1_hi_idx, cont_reg2_lo_idx, cont_reg2_hi_idx
-
-def gauss_fit(wavelen,norm_flux,init_params,max_iter):
-    '''
-    Fit a single Gaussian to some spectrum
-    wavelen
-    norm_flux
-    line_center
-    wavelen_min
-    wavelen_max
-    init_params
-    '''
-
-    # wavelen_mask = (wavelen > wavelen_min) & (wavelen < wavelen_max)
-    # wavelen = wavelen[wavelen_mask]
-    # norm_flux = norm_flux[wavelen_mask]
-
-    popt, pcov = curve_fit(f=gaussian,
-                           xdata=wavelen,
-                           ydata=norm_flux,
-                           p0=init_params,
-                           maxfev=max_iter)
-    
-    # Give the optimal parameters as caluclated by curve fit to the Gaussian model
-    best_model = gaussian(wavelen,*popt)
-
-    return popt, pcov, best_model
-
-def two_gauss_fit(wavelen,norm_flux,init_params,max_iter):
-    '''
-    wavelen
-    norm_flux
-    line_center
-    wavelen_min
-    wavelen_max
-    init_params
-    '''
-    # wavelen_mask = (wavelen > wavelen_min) & (wavelen < wavelen_max)
-    # wavelen = wavelen[wavelen_mask]
-    # norm_flux = norm_flux[wavelen_mask]
-
-    popt, pcov = curve_fit(f=two_gaussian,
-                           xdata=wavelen,
-                           ydata=norm_flux,
-                           p0=init_params,
-                           maxfev=max_iter)
-    
-    # Give the optimal parameters as caluclated by curve fit to the Gaussian model
-    best_model = two_gaussian(wavelen,*popt)
-
-    return popt, pcov, best_model
-
-def three_gauss_fit(wavelen,norm_flux,init_params,max_iter):
-    '''
-    wavelen
-    norm_flux
-    line_center
-    wavelen_min
-    wavelen_max
-    init_params
-    '''
-    # wavelen_mask = (wavelen > wavelen_min) & (wavelen < wavelen_max)
-    # wavelen = wavelen[wavelen_mask]
-    # norm_flux = norm_flux[wavelen_mask]
-
-    popt, pcov = curve_fit(f=three_gaussian,
-                           xdata=wavelen,
-                           ydata=norm_flux,
-                           p0=init_params,
-                           maxfev=max_iter)
-    # Give the optimal parameters as caluclated by curve fit to the Gaussian model
-    best_model = three_gaussian(wavelen,*popt)
-
-    return popt, pcov, best_model
-
-def four_gauss_fit(wavelen,norm_flux,init_params,max_iter):
-    '''
-    wavelen
-    norm_flux
-    line_center
-    wavelen_min
-    wavelen_max
-    init_params
-    '''
-    # wavelen_mask = (wavelen > wavelen_min) & (wavelen < wavelen_max)
-    # wavelen = wavelen[wavelen_mask]
-    # norm_flux = norm_flux[wavelen_mask]
-
-    popt, pcov = curve_fit(f=four_gaussian,
-                           xdata=wavelen,
-                           ydata=norm_flux,
-                           p0=init_params,
-                           maxfev=max_iter)
-    # Give the optimal parameters as caluclated by curve fit to the Gaussian model
-    best_model = four_gaussian(wavelen,*popt)
-
-    return popt, pcov, best_model
 
 
 # contlo_min, contlo_max, conthi_min, conthi_max
