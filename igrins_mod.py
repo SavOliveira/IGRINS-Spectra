@@ -4,6 +4,9 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 from astropy.io import fits
+
+from lmfit import Model
+
 from scipy.special import wofz
 from scipy.integrate import trapz
 from scipy.optimize import curve_fit
@@ -14,81 +17,30 @@ igrins_cols = ['Wavelength', 'Flux', 'SNR','zero']
 # IGRINS rpectral resolution element
 spec_res = 1e-5 # micron per pixel
 
-# cont_window_size = 20*spec_res
 
-def gaussian(x,*p):
-    amplitude, mean, std = p
+def gaussian(x, amplitude, mean, std):
     # Gaussian Distribution
     return ((amplitude/(std*np.sqrt(2*np.pi))) * np.exp(-0.5*((x - mean)**2/std**2))) + 1 #+ (slope*x)+b
-
 
 def gaussian_area(amp, std):
     return np.abs(amp*std)*np.sqrt(2*np.pi)
 
-# /(std*np.sqrt(2*np.pi))
-# def multi_gauss(x ,*params):
-#     """Sum of multiple Gaussians."""
-#     n = len(params) // 3  # Number of Gaussians
-#     gaussians = [gaussian(x, params[i], params[i+1], params[i+2]) for i in range(0, len(params), 3)]
-#     return np.sum(gaussians, axis=0)
-
-def multi_gauss_fit(x, y, init_params, max_iter):
-    """
-    Fits multiple Gaussians to the data.
-
-    Args:
-    - x: Independent variable data.
-    - y: Dependent variable data.
-    - init_params: Initial parameters for the Gaussians. Format: [amp1, cen1, sigma1, amp2, cen2, sigma2, ...]
-    - max_iter: Maximum number of iterations for curve fitting.
-
-    Returns:
-    - popt: Optimal parameters for the fit.
-    - pcov: Covariance matrix of the fit.
-    - best_model: Best-fit model.
-    """
-    n_params = len(init_params)
-    
-    if n_params % 3 != 0:
-        raise ValueError("The number of initial parameters must be a multiple of 3.")
-
-    def multi_gauss(x, num, *params):
-        """Sum of multiple Gaussians."""
-        gaussians = [gaussian(x, params[i], params[i+1], params[i+2]) for i in range(0, len(params), num)]
-        return np.sum(gaussians)
-
-    popt, pcov = curve_fit(f=multi_gauss,
-                           xdata=x,
-                           ydata=y,
-                           p0=init_params,
-                           maxfev=max_iter,
-                           nan_policy='omit')
-    # Generate the best-fit model using the optimal parameters
-    best_model = multi_gauss(x, *popt)
-
-    return popt, pcov, best_model
-
 
 # /(std*np.sqrt(2*np.pi))
 # could use same sigma for multi gauss fits
-def two_gaussian(x, *p):
-    amp1, c1, std1, amp2, c2, std2 = p
+def two_gaussian(x, amp1, c1, std1, amp2, c2, std2):
     return (gaussian(x, amp1,c1,std1) + gaussian(x, amp2,c2,std2) - 1)
 
-def three_gaussian(x, *p):
-    amp1, c1, std1, amp2, c2, std2, amp3, c3, std3 = p
+def three_gaussian(x, amp1, c1, std1, amp2, c2, std2, amp3, c3, std3):
     return (gaussian(x, amp1,c1,std1) + gaussian(x,amp2,c2,std2) + gaussian(x, amp3, c3, std3) - 2)
 
-def four_gaussian(x, *p):
-    amp1, c1, std1, amp2, c2, std2, amp3, c3, std3, amp4, c4, std4 = p
+def four_gaussian(x, amp1, c1, std1, amp2, c2, std2, amp3, c3, std3, amp4, c4, std4):
     return (gaussian(x, amp1, c1, std1) +
             gaussian(x, amp2, c2, std2) +
             gaussian(x, amp3, c3, std3) +
             gaussian(x, amp4, c4, std4) - 3)
 
-
-def five_gaussian(x, *p):
-    amp1, c1, std1, amp2, c2, std2, amp3, c3, std3, amp4, c4, std4, amp5, c5, std5 = p
+def five_gaussian(x, amp1, c1, std1, amp2, c2, std2, amp3, c3, std3, amp4, c4, std4, amp5, c5, std5):
     return (gaussian(x, amp1, c1, std1) +
             gaussian(x, amp2, c2, std2) +
             gaussian(x, amp3, c3, std3) +
@@ -118,7 +70,7 @@ def voigt(x, amp, center, sigma, gamma):
     z = ((x - center) + 1j*gamma) / (sigma * np.sqrt(2))
     return amp * np.real(wofz(z)) / (sigma * np.sqrt(2*np.pi))
 
-def model_fit(func,wavelen,norm_flux,flux_err,init_params,max_iter):
+def model_fit(func,wavelen,norm_flux,flux_err,init_params,**kwargs):
     '''
     Fit a model to some spectral region
     wavelen
@@ -137,12 +89,59 @@ def model_fit(func,wavelen,norm_flux,flux_err,init_params,max_iter):
                            ydata = norm_flux,
                            sigma = flux_err,
                            p0 = init_params,
-                           maxfev = max_iter,
-                           nan_policy = 'omit')
-    
+                           nan_policy = 'omit',
+                           **kwargs)
+    # Calculate errors on each parameter
+    param_error = np.sqrt(np.diag(pcov))
+
     # Give the optimal parameters as caluclated by curve fit to the Gaussian model
     best_model = func(wavelen,*popt)
 
+    return popt, pcov, param_error, best_model
+
+# Define function to calculate errors
+def calculate_model_errors(xdata, popt, pcov, model_func):
+    """Calculate errors for model predictions."""
+    model = model_func(xdata, *popt)
+    n_params = len(popt)
+    jacobian = np.zeros((len(xdata), n_params))
+
+    for i in range(n_params):
+        perturbed_params = np.copy(popt)
+        perturbed_params[i] += np.sqrt(np.diag(pcov))[i]
+        jacobian[:, i] = model_func(xdata, *perturbed_params) - model
+
+    errors = np.sqrt(np.sum((jacobian @ np.sqrt(np.diag(pcov)))**2, axis=1))
+    return errors
+
+from lmfit import Model
+
+def lm_model_fit(func, wavelen, norm_flux, flux_err, init_params, max_iter):
+    '''
+    Fit a model to some spectral region
+    wavelen
+    norm_flux
+    flux_error
+    init_params
+    max_iter
+    '''
+    
+    # Create a model based on the provided function
+    model = Model(func)
+    
+    # Create parameters from init_params
+    params = model.make_params(**init_params)
+    
+    # Perform the fit
+    result = model.fit(norm_flux, params, x=wavelen, weights=1/flux_err, max_nfev=max_iter)
+    
+    # Extract the optimized parameters and their covariance
+    popt = [result.params[key].value for key in result.params.keys()]
+    pcov = result.covar
+    
+    # Evaluate the best fit model
+    best_model = result.best_fit
+    
     return popt, pcov, best_model
 
 
@@ -252,137 +251,6 @@ def local_continuum_fit(wavelen_arr, flux_arr, poly_order, line_center, spec_res
 
     # Return the full continuum fit and the indices of the regions used
     return continuum, region_indices
-
-
-# contlo_min, contlo_max, conthi_min, conthi_max
-# def gauss_fit(wavelen,norm_flux,flux_err,init_params,max_iter):
-#     '''
-#     Fit a single Gaussian to some spectrum
-#     wavelen
-#     norm_flux
-#     flux_error
-#     init_params
-#     max_iter
-#     '''
-
-#     # wavelen_mask = (wavelen > wavelen_min) & (wavelen < wavelen_max)
-#     # wavelen = wavelen[wavelen_mask]
-#     # norm_flux = norm_flux[wavelen_mask]
-
-#     popt, pcov = curve_fit(f = gaussian,
-#                            xdata = wavelen,
-#                            ydata = norm_flux,
-#                            sigma = flux_err,
-#                            p0 = init_params,
-#                            maxfev = max_iter,
-#                            nan_policy = 'omit')
-    
-#     # Give the optimal parameters as caluclated by curve fit to the Gaussian model
-#     best_model = gaussian(wavelen,*popt)
-
-#     return popt, pcov, best_model
-
-# def two_gauss_fit(wavelen,norm_flux,flux_err,init_params,max_iter):
-#     '''
-#     wavelen
-#     norm_flux
-#     line_center
-#     wavelen_min
-#     wavelen_max
-#     init_params
-#     '''
-#     # wavelen_mask = (wavelen > wavelen_min) & (wavelen < wavelen_max)
-#     # wavelen = wavelen[wavelen_mask]
-#     # norm_flux = norm_flux[wavelen_mask]
-
-#     popt, pcov = curve_fit(f=two_gaussian,
-#                            xdata=wavelen,
-#                            ydata=norm_flux,
-#                            sigma=flux_err,
-#                            p0=init_params,
-#                            maxfev=max_iter,
-#                            nan_policy='omit')
-    
-#     # Give the optimal parameters as caluclated by curve fit to the Gaussian model
-#     best_model = two_gaussian(wavelen,*popt)
-
-#     return popt, pcov, best_model
-
-# def three_gauss_fit(wavelen,norm_flux,flux_err,init_params,max_iter):
-#     '''
-#     wavelen
-#     norm_flux
-#     line_center
-#     wavelen_min
-#     wavelen_max
-#     init_params
-#     '''
-#     # wavelen_mask = (wavelen > wavelen_min) & (wavelen < wavelen_max)
-#     # wavelen = wavelen[wavelen_mask]
-#     # norm_flux = norm_flux[wavelen_mask]
-
-#     popt, pcov = curve_fit(f=three_gaussian,
-#                            xdata=wavelen,
-#                            ydata=norm_flux,
-#                            sigma=flux_err,
-#                            p0=init_params,
-#                            maxfev=max_iter,
-#                            nan_policy='omit')
-    
-#     # Give the optimal parameters as caluclated by curve fit to the Gaussian model
-#     best_model = three_gaussian(wavelen,*popt)
-
-#     return popt, pcov, best_model
-
-# def four_gauss_fit(wavelen,norm_flux,flux_err,init_params,max_iter):
-#     '''
-#     wavelen
-#     norm_flux
-#     line_center
-#     wavelen_min
-#     wavelen_max
-#     init_params
-#     '''
-#     # wavelen_mask = (wavelen > wavelen_min) & (wavelen < wavelen_max)
-#     # wavelen = wavelen[wavelen_mask]
-#     # norm_flux = norm_flux[wavelen_mask]
-
-#     popt, pcov = curve_fit(f=four_gaussian,
-#                            xdata=wavelen,
-#                            ydata=norm_flux,
-#                            sigma=flux_err,
-#                            p0=init_params,
-#                            maxfev=max_iter,
-#                            nan_policy='omit')
-#     # Give the optimal parameters as caluclated by curve fit to the Gaussian model
-#     best_model = four_gaussian(wavelen,*popt)
-
-#     return popt, pcov, best_model
-
-# def five_gauss_fit(wavelen,norm_flux,flux_err,init_params,max_iter):
-#     '''
-#     wavelen
-#     norm_flux
-#     line_center
-#     wavelen_min
-#     wavelen_max
-#     init_params
-#     '''
-#     # wavelen_mask = (wavelen > wavelen_min) & (wavelen < wavelen_max)
-#     # wavelen = wavelen[wavelen_mask]
-#     # norm_flux = norm_flux[wavelen_mask]
-
-#     popt, pcov = curve_fit(f=five_gaussian,
-#                            xdata=wavelen,
-#                            ydata=norm_flux,
-#                            sigma=flux_err,
-#                            p0=init_params,
-#                            maxfev=max_iter,
-#                            nan_policy='omit')
-#     # Give the optimal parameters as caluclated by curve fit to the Gaussian model
-#     best_model = five_gaussian(wavelen,*popt)
-
-#     return popt, pcov, best_model
 
 def normalize_flux(flux):
     return flux/np.median(flux)
