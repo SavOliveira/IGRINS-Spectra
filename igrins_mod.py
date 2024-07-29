@@ -20,7 +20,7 @@ spec_res = 1e-5 # micron per pixel
 
 def gaussian(x, amplitude, mean, std):
     # Gaussian Distribution
-    return ((amplitude/(std*np.sqrt(2*np.pi))) * np.exp(-0.5*((x - mean)**2/std**2))) + 1 #+ (slope*x)+b
+    return ((amplitude/(std*np.sqrt(2*np.pi))) * np.exp(-0.5*((x - mean)**2/std**2))) + 1
 
 def gaussian_area(amp, std):
     return np.abs(amp*std)*np.sqrt(2*np.pi)
@@ -40,6 +40,9 @@ def four_gaussian(x, amp1, c1, std1, amp2, c2, std2, amp3, c3, std3, amp4, c4, s
             gaussian(x, amp3, c3, std3) +
             gaussian(x, amp4, c4, std4) - 3)
 
+# change the centers to something e.g. c1+offset instead of c1+c5
+# use lab wavelengths -> velocity -> lambda = lam_lab (1+v/c)
+# maybe force std to be the same
 def five_gaussian(x, amp1, c1, std1, amp2, c2, std2, amp3, c3, std3, amp4, c4, std4, amp5, c5, std5):
     return (gaussian(x, amp1, c1, std1) +
             gaussian(x, amp2, c2, std2) +
