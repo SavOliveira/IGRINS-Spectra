@@ -18,13 +18,13 @@ igrins_cols = ['Wavelength', 'Flux', 'SNR','zero']
 spec_res = 1e-5 # micron per pixel
 
 
-def gaussian(x, amplitude, mean, std):
+def gaussian(x, amp, c, std):
     # Gaussian Distribution
-    return ((amplitude/(std*np.sqrt(2*np.pi))) * np.exp(-0.5*((x - mean)**2/std**2))) + 1
+    return ((amp/(std*np.sqrt(2*np.pi))) * np.exp(-0.5*((x - c)**2/std**2))) + 1
 
 def gaussian_area(amp, std):
+    # area of a guassian using parameters
     return np.abs(amp*std)*np.sqrt(2*np.pi)
-
 
 # /(std*np.sqrt(2*np.pi))
 # could use same sigma for multi gauss fits
@@ -75,7 +75,7 @@ def voigt(x, amp, center, sigma, gamma):
 
 def model_fit(func,wavelen,norm_flux,flux_err,init_params,**kwargs):
     '''
-    Fit a model to some spectral region
+    Fit a model to some spectral region using scipy curve_fit
     wavelen
     norm_flux
     flux_error
