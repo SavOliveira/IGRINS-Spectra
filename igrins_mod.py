@@ -17,7 +17,9 @@ igrins_cols = ['Wavelength', 'Flux', 'SNR','zero']
 # IGRINS rpectral resolution element
 spec_res = 1e-5 # micron per pixel
 
-
+# change the centers to something e.g. c1+offset instead of c1+c5
+# use lab wavelengths -> velocity -> lambda = lam_lab (1+v/c)
+# maybe force std to be the same
 def gaussian(x, amp, c, std):
     # Gaussian Distribution
     return ((amp/(std*np.sqrt(2*np.pi))) * np.exp(-0.5*((x - c)**2/std**2))) + 1
@@ -34,16 +36,32 @@ def two_gaussian(x, amp1, c1, std1, amp2, c2, std2):
 def three_gaussian(x, amp1, c1, std1, amp2, c2, std2, amp3, c3, std3):
     return (gaussian(x, amp1,c1,std1) + gaussian(x,amp2,c2,std2) + gaussian(x, amp3, c3, std3) - 2)
 
-def four_gaussian(x, amp1, c1, std1, amp2, c2, std2, amp3, c3, std3, amp4, c4, std4):
+def four_gaussian(x, amp1, c1, std1, amp2, c2, std2, amp3, c3, std3, amp4, c4, std4, beta):
+    # linear combination of four gaussians with an offset to set baseline at 1
+    # beta = (1+v/c)
+    return (gaussian(x, amp1, c1*(beta), std1) +
+            gaussian(x, amp2, c2*(beta), std2) +
+            gaussian(x, amp3, c3*(beta), std3) +
+            gaussian(x, amp4, c4*(beta), std4) - 3)
+
+def four_gaussian_test(x, amp1, c1, std1, amp2, c2, amp3, c3, amp4, c4, beta):
+    # linear combination of four gaussians with an offset to set baseline at 1
+    # using the same sigma for each component Gaussian
+    # beta = (1+v/c)
+    return (gaussian(x, amp1, c1*(beta), std1) +
+            gaussian(x, amp2, c2*(beta), std1) +
+            gaussian(x, amp3, c3*(beta), std1) +
+            gaussian(x, amp4, c4*(beta), std1) - 3)
+
+
+def five_gaussian(x, amp1, c1, std1, amp2, c2, std2, amp3, c3, std3, amp4, c4, std4, amp5, c5, std5):
     return (gaussian(x, amp1, c1, std1) +
             gaussian(x, amp2, c2, std2) +
             gaussian(x, amp3, c3, std3) +
-            gaussian(x, amp4, c4, std4) - 3)
+            gaussian(x, amp4, c4, std4) +
+            gaussian(x, amp5, c5, std5) - 4)
 
-# change the centers to something e.g. c1+offset instead of c1+c5
-# use lab wavelengths -> velocity -> lambda = lam_lab (1+v/c)
-# maybe force std to be the same
-def five_gaussian(x, amp1, c1, std1, amp2, c2, std2, amp3, c3, std3, amp4, c4, std4, amp5, c5, std5):
+def five_gaussian_offsets(x, amp1, c1, std1, amp2, c2, std2, amp3, c3, std3, amp4, c4, std4, amp5, c5, std5):
     return (gaussian(x, amp1, c1, std1) +
             gaussian(x, amp2, c2, std2) +
             gaussian(x, amp3, c3, std3) +
