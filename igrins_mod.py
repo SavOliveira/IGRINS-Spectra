@@ -20,9 +20,13 @@ spec_res = 1e-5 # micron per pixel
 # change the centers to something e.g. c1+offset instead of c1+c5
 # use lab wavelengths -> velocity -> lambda = lam_lab (1+v/c)
 # maybe force std to be the same
-def gaussian(x, amp, c, std):
+def gaussian(x, amp1, c1, std1):
     # Gaussian Distribution
-    return ((amp/(std*np.sqrt(2*np.pi))) * np.exp(-0.5*((x - c)**2/std**2))) + 1
+    return ((amp1/(std1*np.sqrt(2*np.pi))) * np.exp(-0.5*((x - c1)**2/std1**2))) + 1
+
+def gaussian_beta(x, amp1, c1, std1, beta):
+    # Gaussian Distribution
+    return ((amp1/(std1*np.sqrt(2*np.pi))) * np.exp(-0.5*((x - c1*beta)**2/std1**2))) + 1
 
 def gaussian_area(amp, std):
     # area of a guassian using parameters (just amp??)
@@ -32,6 +36,9 @@ def gaussian_area(amp, std):
 # could use same sigma for multi gauss fits
 def two_gaussian(x, amp1, c1, std1, amp2, c2, std2):
     return (gaussian(x, amp1,c1,std1) + gaussian(x, amp2,c2,std2) - 1)
+
+def two_gaussian_beta(x, amp1, c1, std1, amp2, c2, std2, beta):
+    return (gaussian(x, amp1,c1*beta,std1) + gaussian(x, amp2,c2*beta,std2) - 1)
 
 def three_gaussian(x, amp1, c1, std1, amp2, c2, std2, amp3, c3, std3):
     return (gaussian(x, amp1,c1,std1) + gaussian(x,amp2,c2,std2) + gaussian(x, amp3, c3, std3) - 2)
