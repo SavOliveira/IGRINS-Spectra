@@ -1,0 +1,62 @@
+{
+  "version": "2.0.0",
+  "cells": [
+    {
+      "type": "code",
+      "content": [
+        "!path = !path + 'C:/Users/Savio/Documents/IDL/IDLAstro/pro/' + ';'",
+        "!path = !path + 'C:/Users/Savio/Documents/IDL/coyote_astron/pro/' + ';'",
+        "!path = !path + 'C:/Users/Savio/Documents/IDL/spextool/pro/' + ';'"
+      ],
+      "metadata": {},
+      "outputs": []
+    },
+    {
+      "type": "code",
+      "content": [
+        "filepath = \"C:\\Users\\Savio\\Documents\\IGRINS-Spectra\\Standards\\MHO_8\\20190124\\20190124_008\\SDCK_20190124_0085.spec_a0v.fits\"",
+        "outpath = \"C:\\Users\\Savio\\Documents\\IGRINS-Spectra\\Standards\\MHO_8\\20190124\\20190124_008\""
+      ],
+      "metadata": {},
+      "outputs": []
+    },
+    {
+      "type": "code",
+      "content": [
+        ".compile mc_igrins2spextool"
+      ],
+      "metadata": {},
+      "outputs": [
+        {
+          "items": [
+            {
+              "mime": "text/plain",
+              "content": [
+                "% Compiled module: MC_IGRINS2SPEXTOOL."
+              ]
+            }
+          ],
+          "metadata": {
+            "id": "not-saved"
+          }
+        }
+      ]
+    },
+    {
+      "type": "code",
+      "content": [
+        "mc_igrins2spextool, filepath"
+      ],
+      "metadata": {},
+      "outputs": []
+    },
+    {
+      "type": "code",
+      "content": [
+        ""
+      ],
+      "metadata": {},
+      "outputs": []
+    }
+  ]
+}

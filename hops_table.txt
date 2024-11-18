@@ -7,5 +7,4 @@ C:/Users/Savio/Documents/IGRINS-Spectra/IGRINS_Merged/mHOPS368_20180115_K_0059_s
 C:/Users/Savio/Documents/IGRINS-Spectra/IGRINS_Merged/mHOPS369_20180117_K_0053_spec_A0v.fits,HOPS369,
 C:/Users/Savio/Documents/IGRINS-Spectra/IGRINS_Merged/mHOPS370South_20190123_K_0075_spec_A0v.fits,HOPS370S,
 C:/Users/Savio/Documents/IGRINS-Spectra/IGRINS_Merged/mHOPS370_20190123_K_0071_spec_A0v.fits,HOPS370,
-C:/Users/Savio/Documents/IGRINS-Spectra/IGRINS_Merged/mHOPS386_20171228_K_0083_spec_A0v.fits,HOPS386,
 C:/Users/Savio/Documents/IGRINS-Spectra/IGRINS_Merged/mHOPS388_20181120_K_0091.fits,HOPS388,

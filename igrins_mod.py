@@ -66,12 +66,12 @@ def five_gaussian(x, amp1, c1, std1, amp2, c2, std2, amp3, c3, std3, amp4, c4, s
             gaussian(x, amp4, c4*(beta), std4) +
             gaussian(x, amp5, c5*(beta), std5) - 4)
 
-def five_gaussian_beta(x, amp1, c1, std1, amp2, c2, amp3, c3, amp4, c4, amp5, c5, beta):
+def five_gaussian_beta(x, amp1, c1, std1, amp2, c2, std2, amp3, c3, std3, amp4, c4, std4, amp5, c5, std5, beta):
     return (gaussian(x, amp1, c1*(beta), std1) +
-            gaussian(x, amp2, c2*(beta), std1) +
-            gaussian(x, amp3, c3*(beta), std1) +
-            gaussian(x, amp4, c4*(beta), std1) +
-            gaussian(x, amp5, c5*(beta), std1) - 4)
+            gaussian(x, amp3, c3*(beta), std2) +
+            gaussian(x, amp4, c4*(beta), std3) +
+            gaussian(x, amp2, c2*(beta), std4) +
+            gaussian(x, amp5, c5*(beta), std5) - 4)
 
 def voigt(x, amp, center, sigma, gamma):
     """
