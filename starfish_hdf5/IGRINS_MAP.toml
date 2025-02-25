@@ -1,0 +1,16 @@
+frozen = [ "logg",]
+
+[parameters]
+Av = 8.825316254924506e-5
+vz = 61.07931195560792
+T = 2921.9257546933895
+logg = 4.5
+Z = 0.0009877041658120722
+
+[metadata]
+name = "Anon1"
+emulator = "starfish_hdf5\\F_IGRINS_K_emu"
+
+[parameters.global_cov]
+log_amp = 0.009048001761562788
+log_ls = 1.6923840636433174
